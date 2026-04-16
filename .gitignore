@@ -1,0 +1,54 @@
+# Node / build
+node_modules/
+dist/
+dist-electron/
+release/
+*.log
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Env / credenciais
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets.json
+
+# Dados sensíveis (NÃO COMMITAR)
+test-files/
+samples/
+fixtures-reais/
+
+# Artefatos de build pesados (Python embed, libs, modelos)
+# Toda a árvore de empacotamento fica fora (850MB+ com torch/transformers)
+resources/python-backend/
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Modelos baixados em runtime (cache HF)
+.cache/
+models/
+*.safetensors
+*.bin
+
+# Instaladores gerados
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.rpm

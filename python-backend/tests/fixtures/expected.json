@@ -1,0 +1,59 @@
+{
+  "should_be_masked": {
+    "PERSON": [
+      "MARIANA SOUSA DE OLIVEIRA",
+      "PAULO HENRIQUE DA SILVA",
+      "RICARDO PEREIRA DOS SANTOS",
+      "JOÃO DA SILVA JUNIOR",
+      "Maria das Graças Silva",
+      "Pedro Silva",
+      "CARLA MENDES DE ARAÚJO",
+      "ANTONIO CARLOS FERREIRA",
+      "FRANCISCO EDUARDO LIMA"
+    ],
+    "CPF_BR": [
+      "123.456.789-09",
+      "98765432100",
+      "111.222.333-96"
+    ],
+    "CNPJ_BR": [
+      "12.345.678/0001-90"
+    ],
+    "RG_BR": [
+      "2.345.678-9"
+    ],
+    "DATE_OF_BIRTH": [
+      "15/03/1985"
+    ],
+    "PHONE_NUMBER_BR": [
+      "(85) 99876-5432",
+      "+55 85 98765-4321"
+    ],
+    "EMAIL_ADDRESS": [
+      "joao.silva@exemplo.com.br"
+    ],
+    "OAB_BR": [
+      "OAB/CE 45.678",
+      "OAB/CE 12345"
+    ],
+    "NIT_PIS_PASEP": [
+      "120.45678.90-0"
+    ],
+    "NUMERO_PROCESSO_CNJ": [
+      "0001234-56.2023.8.06.0001"
+    ],
+    "CONTA_BANCARIA": [
+      "Ag 1234 CC 56789-0"
+    ]
+  },
+  "should_not_be_masked": [
+    "PODER JUDICIÁRIO",
+    "TRIBUNAL DE JUSTIÇA",
+    "VARA CRIMINAL",
+    "Ministério Público",
+    "Código de Processo Penal",
+    "Banco do Brasil",
+    "Juíza de Direito",
+    "TERMO DE AUDIÊNCIA"
+  ]
+}

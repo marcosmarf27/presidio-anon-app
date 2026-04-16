@@ -1,0 +1,98 @@
+{
+  "CPF_BR": [
+    "cpf",
+    "cadastro de pessoa física",
+    "cadastro",
+    "documento",
+    "inscrição"
+  ],
+  "CNPJ_BR": [
+    "cnpj",
+    "empresa",
+    "razão social",
+    "pessoa jurídica",
+    "inscrição"
+  ],
+  "RG_BR": [
+    "rg",
+    "registro geral",
+    "identidade",
+    "cédula de identidade",
+    "carteira de identidade",
+    "ssp"
+  ],
+  "PHONE_NUMBER_BR": [
+    "telefone",
+    "celular",
+    "fone",
+    "contato",
+    "whatsapp",
+    "tel",
+    "ramal"
+  ],
+  "OAB_BR": [
+    "oab",
+    "advogado",
+    "advogada",
+    "inscrição"
+  ],
+  "DATE_OF_BIRTH": [
+    "nascimento",
+    "nascido",
+    "nascida",
+    "data de nascimento",
+    "dt. nasc",
+    "dt nasc",
+    "nasc.",
+    "natural de"
+  ],
+  "NIT_PIS_PASEP": [
+    "nit",
+    "pis",
+    "pasep",
+    "previdência",
+    "inss",
+    "benefício",
+    "número de inscrição"
+  ],
+  "NUMERO_PROCESSO_CNJ": [
+    "processo",
+    "autos",
+    "ação",
+    "número",
+    "nº"
+  ],
+  "CONTA_BANCARIA": [
+    "banco",
+    "agência",
+    "conta",
+    "conta corrente",
+    "conta poupança",
+    "bancário",
+    "bancária"
+  ],
+  "PERSON": [
+    "advogado", "advogada", "procurador", "procuradora",
+    "defensor", "defensora", "curador", "curadora",
+    "perito", "perita", "testemunha", "testemunhas", "assistente",
+    "policial", "delegado", "delegada", "escrivão", "escrivã",
+    "dr", "dra", "dr.", "dra.",
+    "autor", "autora", "réu", "ré",
+    "requerente", "requerido", "requerida",
+    "exequente", "executado", "executada",
+    "embargante", "embargado", "embargada",
+    "agravante", "agravado", "agravada",
+    "apelante", "apelado", "apelada",
+    "recorrente", "recorrido", "recorrida",
+    "litisconsorte", "interveniente", "opoente",
+    "inventariante", "herdeiro", "herdeira",
+    "acusado", "acusada", "indiciado", "indiciada",
+    "denunciado", "denunciada", "querelante", "querelado",
+    "vítima", "ofendido", "ofendida",
+    "paciente", "coator", "coatora",
+    "reclamante", "reclamado", "reclamada",
+    "impetrante", "impetrado", "impetrada",
+    "interessado", "interessada",
+    "sr", "sra", "sr.", "sra.", "senhor", "senhora"
+  ]
+}
