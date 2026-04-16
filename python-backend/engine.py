@@ -68,7 +68,7 @@ def _transformer_config() -> dict:
             {
                 "lang_code": "pt",
                 "model_name": {
-                    "spacy": "pt_core_news_sm",
+                    "spacy": "pt_core_news_lg",
                     "transformers": "pierreguillou/ner-bert-large-cased-pt-lenerbr",
                 },
             }
@@ -112,14 +112,24 @@ class PresidioEngine:
         if self._ready:
             return
 
-        config = (
-            _transformer_config()
-            if self._nlp_mode == "transformer"
-            else _spacy_config()
-        )
+        nlp_engine = None
+        if self._nlp_mode == "transformer":
+            try:
+                import transformers  # noqa: F401
+                import torch  # noqa: F401
+                provider = NlpEngineProvider(nlp_configuration=_transformer_config())
+                nlp_engine = provider.create_engine()
+            except Exception as exc:
+                print(
+                    f"[engine] Falha ao carregar modo transformer ({exc!r}). "
+                    "Caindo para spaCy.",
+                    flush=True,
+                )
+                self._nlp_mode = "spacy"
 
-        provider = NlpEngineProvider(nlp_configuration=config)
-        nlp_engine = provider.create_engine()
+        if nlp_engine is None:
+            provider = NlpEngineProvider(nlp_configuration=_spacy_config())
+            nlp_engine = provider.create_engine()
 
         registry = RecognizerRegistry(supported_languages=["pt"])
         registry.load_predefined_recognizers(
