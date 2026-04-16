@@ -57,6 +57,46 @@ PRESIDIO_NLP_MODE=spacy npm run dev:electron
 Os testes medem recall e precisão sobre uma fixture jurídica sintética
 (sem dados reais). Ver `python-backend/tests/fixtures/`.
 
+## Uso via linha de comando (CLI)
+
+Além da GUI, o app instala uma CLI que funciona no **cmd/PowerShell** e no **WSL**.
+Basta abrir a tela **Linha de comando** na barra lateral e clicar em **Ativar no Windows**
+e/ou **Ativar no WSL**. Depois, em qualquer terminal:
+
+```bash
+# Arquivo -> stdout
+presidio-anon audiencia.txt
+
+# Arquivo -> arquivo
+presidio-anon audiencia.txt -o audiencia_anon.txt
+
+# Pipe (Unix / WSL)
+cat audiencia.txt | presidio-anon --entities PERSON,CPF_BR
+
+# Batch in-place
+presidio-anon *.txt --in-place
+
+# Formato JSON (ideal para agentes como Claude Code)
+presidio-anon audiencia.txt -q --format json
+```
+
+Saída JSON inclui `anonymized_text` e a lista `entities_found` com tipo,
+texto original, posição (`start`/`end`) e score de cada PII detectada.
+
+Flags:
+- `-e, --entities` — lista separada por vírgula (PERSON, CPF_BR, CNPJ_BR, RG_BR, PHONE_NUMBER_BR, EMAIL_ADDRESS, LOCATION, OAB_BR, DATE_OF_BIRTH, NIT_PIS_PASEP, NUMERO_PROCESSO_CNJ, CONTA_BANCARIA). Default: todas.
+- `-f, --format text|json` — formato de saída.
+- `-o, --output` — arquivo de saída (default stdout).
+- `--output-dir` — pasta para batch (com múltiplos arquivos).
+- `--in-place` — sobrescreve os inputs.
+- `--nlp-mode transformer|spacy` — força o modo para esta execução.
+- `-q, --quiet` — suprime banner de inicialização no stderr.
+
+Em dev, rode direto:
+```bash
+.venv/bin/python python-backend/cli.py audiencia.txt
+```
+
 ## Configuração
 
 - `python-backend/config/deny_list.json` — termos que nunca devem ser mascarados, separados por entidade.

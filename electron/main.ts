@@ -1,8 +1,12 @@
 import { app, BrowserWindow, ipcMain, dialog } from "electron";
-import { spawn, ChildProcess } from "child_process";
+import { spawn, ChildProcess, execFile } from "child_process";
+import { promisify } from "util";
 import * as path from "path";
 import * as fs from "fs";
 import * as net from "net";
+import * as os from "os";
+
+const execFileP = promisify(execFile);
 
 let mainWindow: BrowserWindow | null = null;
 let pythonProcess: ChildProcess | null = null;
@@ -131,6 +135,184 @@ ipcMain.handle(
     fs.writeFileSync(filePath, content, "utf-8");
   }
 );
+
+// ---------- CLI installer (Windows PATH + WSL shim) ----------
+
+function backendResourcePath(): string {
+  // Em prod: <install>\resources\python-backend. Em dev: ./resources/python-backend
+  return app.isPackaged
+    ? path.join(process.resourcesPath, "python-backend")
+    : path.join(__dirname, "..", "resources", "python-backend");
+}
+
+async function getUserPath(): Promise<string> {
+  if (process.platform !== "win32") return "";
+  const ps =
+    `[Environment]::GetEnvironmentVariable('PATH','User')`;
+  const { stdout } = await execFileP("powershell.exe", [
+    "-NoProfile", "-Command", ps,
+  ]);
+  return (stdout || "").trim();
+}
+
+async function setUserPath(newValue: string): Promise<void> {
+  const ps =
+    `[Environment]::SetEnvironmentVariable('PATH', $args[0], 'User')`;
+  await execFileP("powershell.exe", [
+    "-NoProfile", "-Command", ps, "-Args", newValue,
+  ]);
+}
+
+async function wslAvailable(): Promise<boolean> {
+  if (process.platform !== "win32") return false;
+  try {
+    await execFileP("wsl.exe", ["--status"], { timeout: 5000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function wslPath(winPath: string): Promise<string> {
+  // wslpath -u "C:\..." => /mnt/c/...
+  const { stdout } = await execFileP("wsl.exe", [
+    "wslpath", "-u", winPath,
+  ]);
+  return stdout.trim();
+}
+
+async function wslHomeBin(): Promise<string> {
+  const { stdout } = await execFileP("wsl.exe", [
+    "bash", "-c", "echo $HOME/.local/bin",
+  ]);
+  return stdout.trim();
+}
+
+function bashShimContent(wslRoot: string): string {
+  // Script bash que chama o python.exe Windows via interop WSL.
+  return [
+    "#!/usr/bin/env bash",
+    "# Gerado pelo Presidio Anon — nao edite manualmente",
+    `PRESIDIO_ROOT='${wslRoot}'`,
+    "exec \"${PRESIDIO_ROOT}/python-embed/python.exe\" \"${PRESIDIO_ROOT}/cli.py\" \"$@\"",
+    "",
+  ].join("\n");
+}
+
+ipcMain.handle("cli-status", async () => {
+  const backendDir = backendResourcePath();
+  const status = {
+    backendDir,
+    windows: { installed: false, onPath: false },
+    wsl: { available: false, installed: false, shimPath: "" },
+  };
+
+  if (process.platform === "win32") {
+    const userPath = await getUserPath().catch(() => "");
+    status.windows.onPath = userPath
+      .split(";")
+      .some((p) => path.normalize(p).toLowerCase() === path.normalize(backendDir).toLowerCase());
+    status.windows.installed = status.windows.onPath;
+
+    if (await wslAvailable()) {
+      status.wsl.available = true;
+      try {
+        const home = await wslHomeBin();
+        status.wsl.shimPath = `${home}/presidio-anon`;
+        const { stdout } = await execFileP("wsl.exe", [
+          "bash", "-c", `test -x '${status.wsl.shimPath}' && echo ok || echo no`,
+        ]);
+        status.wsl.installed = stdout.trim() === "ok";
+      } catch {
+        // WSL presente mas sem user home acessível — ignora
+      }
+    }
+  }
+
+  return status;
+});
+
+ipcMain.handle("cli-install-windows", async () => {
+  if (process.platform !== "win32") {
+    return { ok: false, error: "Disponível apenas no Windows." };
+  }
+  const dir = backendResourcePath();
+  const current = await getUserPath();
+  const parts = current.split(";").filter(Boolean);
+  const already = parts.some(
+    (p) => path.normalize(p).toLowerCase() === path.normalize(dir).toLowerCase()
+  );
+  if (already) return { ok: true, alreadyInstalled: true };
+
+  const newValue = [...parts, dir].join(";");
+  await setUserPath(newValue);
+  return { ok: true, note: "PATH atualizado. Reabra o terminal para aplicar." };
+});
+
+ipcMain.handle("cli-uninstall-windows", async () => {
+  if (process.platform !== "win32") {
+    return { ok: false, error: "Disponível apenas no Windows." };
+  }
+  const dir = backendResourcePath();
+  const current = await getUserPath();
+  const filtered = current
+    .split(";")
+    .filter((p) => p && path.normalize(p).toLowerCase() !== path.normalize(dir).toLowerCase());
+  await setUserPath(filtered.join(";"));
+  return { ok: true };
+});
+
+ipcMain.handle("cli-install-wsl", async () => {
+  if (process.platform !== "win32") {
+    return { ok: false, error: "Disponível apenas quando o app roda no Windows." };
+  }
+  if (!(await wslAvailable())) {
+    return { ok: false, error: "WSL não detectado." };
+  }
+  const backendWin = backendResourcePath();
+  const backendWsl = await wslPath(backendWin);
+  const shimContent = bashShimContent(backendWsl);
+
+  const homeBin = await wslHomeBin();
+  const shim = `${homeBin}/presidio-anon`;
+
+  // Usa base64 para escapar qualquer caractere problemático no shell
+  const b64 = Buffer.from(shimContent, "utf-8").toString("base64");
+  const cmd = [
+    `mkdir -p '${homeBin}'`,
+    `echo '${b64}' | base64 -d > '${shim}'`,
+    `chmod +x '${shim}'`,
+  ].join(" && ");
+  await execFileP("wsl.exe", ["bash", "-c", cmd]);
+
+  const pathCheck = await execFileP("wsl.exe", [
+    "bash", "-c", `echo "$PATH" | tr ':' '\\n' | grep -Fx '${homeBin}' || true`,
+  ]);
+  const onPath = Boolean(pathCheck.stdout.trim());
+
+  return {
+    ok: true,
+    shimPath: shim,
+    onPath,
+    note: onPath
+      ? "Use 'presidio-anon' em qualquer terminal WSL."
+      : `Adicione '${homeBin}' ao PATH do seu shell (ex.: em ~/.bashrc).`,
+  };
+});
+
+ipcMain.handle("cli-uninstall-wsl", async () => {
+  if (process.platform !== "win32" || !(await wslAvailable())) {
+    return { ok: false, error: "WSL indisponível." };
+  }
+  const homeBin = await wslHomeBin();
+  await execFileP("wsl.exe", ["bash", "-c", `rm -f '${homeBin}/presidio-anon'`]);
+  return { ok: true };
+});
+
+// Silencia lint de imports opcionais não usados se os helpers forem podados
+void os;
+
+// ---------- fim CLI installer ----------
 
 ipcMain.handle("select-files", async () => {
   if (!mainWindow) return [];

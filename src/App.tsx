@@ -6,11 +6,12 @@ import { FileSelector } from "./components/FileSelector";
 import { EntityConfig } from "./components/EntityConfig";
 import { ProcessingView } from "./components/ProcessingView";
 import { PreviewView } from "./components/PreviewView";
+import { CliInstaller } from "./components/CliInstaller";
 import { Toast } from "./components/Toast";
 import type { FileItem, ProcessedFile, EntityType, HistoryItem } from "./types";
 import { ALL_ENTITIES } from "./types";
 
-type AppScreen = "select" | "processing" | "preview";
+type AppScreen = "select" | "processing" | "preview" | "cli";
 
 interface ToastState {
   message: string;
@@ -291,6 +292,7 @@ export default function App() {
         onDeleteEntry={history.removeEntry}
         onClearHistory={history.clearHistory}
         onNewProcess={handleNewProcess}
+        onOpenCli={() => setScreen("cli")}
         activeEntryId={activeHistoryId}
       />
 
@@ -365,6 +367,13 @@ export default function App() {
             onSaveAll={handleSaveAll}
             onDownloadFile={handleDownloadSingle}
             onBack={handleBack}
+          />
+        )}
+
+        {screen === "cli" && (
+          <CliInstaller
+            onClose={() => setScreen("select")}
+            showToast={showToast}
           />
         )}
       </main>

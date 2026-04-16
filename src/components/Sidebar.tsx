@@ -7,6 +7,7 @@ interface SidebarProps {
   onDeleteEntry: (id: string) => void;
   onClearHistory: () => void;
   onNewProcess: () => void;
+  onOpenCli: () => void;
   activeEntryId?: string;
 }
 
@@ -35,6 +36,7 @@ export function Sidebar({
   onDeleteEntry,
   onClearHistory,
   onNewProcess,
+  onOpenCli,
   activeEntryId,
 }: SidebarProps) {
   return (
@@ -54,8 +56,8 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* New process button */}
-      <div className="px-3 pt-3">
+      {/* New process + CLI buttons */}
+      <div className="space-y-2 px-3 pt-3">
         <button
           onClick={onNewProcess}
           className="flex w-full items-center gap-2 rounded-lg border border-border bg-surface-raised px-3 py-2.5 text-sm font-medium text-text transition hover:border-accent/40 hover:bg-surface-hover"
@@ -64,6 +66,15 @@ export function Sidebar({
             <path d="M12 5v14M5 12h14" />
           </svg>
           Novo processamento
+        </button>
+        <button
+          onClick={onOpenCli}
+          className="flex w-full items-center gap-2 rounded-lg border border-transparent px-3 py-2 text-[13px] font-medium text-text-secondary transition hover:bg-surface-hover hover:text-text"
+        >
+          <svg className="h-4 w-4 text-text-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 17l6-6-6-6M12 19h8" />
+          </svg>
+          Linha de comando
         </button>
       </div>
 
